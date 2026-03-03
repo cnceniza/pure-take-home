@@ -1,13 +1,13 @@
 # PURE Home River - Task List
 
 ## Project Setup
-- [ ] Initialize Repository Structure `[/]`
-    - [ ] Create `api/` directory for backend
-    - [ ] Create `web/` directory for frontend
-- [ ] Backend Setup
-    - [ ] Initialize Node.js project in `api/`
-    - [ ] Install dependencies (express, typescript, ts-node-dev, cors, uuid, etc.)
-    - [ ] Configure `tsconfig.json`
+- [x] Initialize Repository Structure `[/]`
+    - [x] Create `api/` directory for backend
+    - [x] Create `web/` directory for frontend
+- [x] Backend Setup
+    - [x] Initialize Node.js project in `api/`
+    - [x] Install dependencies (express, typescript, ts-node-dev, cors, uuid, etc.)
+    - [x] Configure `tsconfig.json`
 - [ ] Frontend Setup
     - [ ] Initialize Vue 3 + TypeScript project in `web/` using Vite
     - [ ] Install dependencies (axios, etc.)
