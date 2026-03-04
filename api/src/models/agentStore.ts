@@ -13,6 +13,8 @@ class AgentStore {
         const agent1Id = uuidv4();
         const agent2Id = uuidv4();
         const now = new Date();
+        const prop1Id = uuidv4();
+        const agent2Prop1Id = uuidv4();
 
         const agent1: PropertyAgent = {
             id: agent1Id,
@@ -27,7 +29,7 @@ class AgentStore {
             noteCount: 3,
             properties: [
                 {
-                    id: uuidv4(),
+                    id: prop1Id,
                     agentId: agent1Id,
                     address: '123 Maple Ave',
                     city: 'Springfield',
@@ -53,7 +55,7 @@ class AgentStore {
                 }
             ],
             notes: [
-                { id: uuidv4(), agentId: agent1Id, propertyId: null, type: NoteType.Maintenance, description: 'Fix leaking faucet in Unit A', dueDate: new Date(Date.now() + 86400000 * 2) },
+                { id: uuidv4(), agentId: agent1Id, propertyId: prop1Id, type: NoteType.Maintenance, description: 'Fix leaking faucet in Unit A', dueDate: new Date(Date.now() + 86400000 * 2) },
                 { id: uuidv4(), agentId: agent1Id, propertyId: null, type: NoteType.Inspection, description: 'Annual fire safety check', dueDate: new Date(Date.now() + 86400000 * 5) }
             ]
         };
@@ -71,7 +73,7 @@ class AgentStore {
             noteCount: 1,
             properties: [
                 {
-                    id: uuidv4(),
+                    id: agent2Prop1Id,
                     agentId: agent2Id,
                     address: '789 Pine Rd',
                     city: 'Chicago',
@@ -86,7 +88,7 @@ class AgentStore {
                 }
             ],
             notes: [
-                { id: uuidv4(), agentId: agent2Id, propertyId: null, type: NoteType.PestControl, description: 'Quarterly pest control service', dueDate: new Date(Date.now() + 86400000 * 1) }
+                { id: uuidv4(), agentId: agent2Id, propertyId: agent2Prop1Id, type: NoteType.PestControl, description: 'Quarterly pest control service', dueDate: new Date(Date.now() + 86400000 * 1) }
             ]
         };
 
