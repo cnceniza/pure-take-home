@@ -1,6 +1,7 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
 import agentRoutes from './routes/agentRoutes';
+import noteRoutes from './routes/noteRoutes';
 import { errorHandler } from './middleware/errorHandler';
 
 const app = express();
@@ -11,6 +12,7 @@ app.use(express.json());
 
 // API Routes
 app.use('/agents', agentRoutes);
+app.use('/agents', noteRoutes);
 
 // Simple health check endpoint
 app.get('/', (req: Request, res: Response) => {

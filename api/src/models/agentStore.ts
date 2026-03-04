@@ -1,4 +1,4 @@
-import { PropertyAgent, NoteType } from './types';
+import { PropertyAgent, NoteType, NoteReminder } from './types';
 import { v4 as uuidv4 } from 'uuid';
 
 class AgentStore {
@@ -149,6 +149,57 @@ class AgentStore {
             data,
             total: this.agents.length
         };
+    }
+
+    // Note management
+    getNotes(agentId: string): NoteReminder[] {
+        const agent = this.getById(agentId);
+        return agent?.notes || [];
+    }
+
+    addNote(agentId: string, data: Omit<NoteReminder, 'id'>): NoteReminder | undefined {
+        const agent = this.getById(agentId);
+        if (!agent) return undefined;
+
+        if (!agent.notes) {
+            agent.notes = [];
+        }
+
+        const newNote: NoteReminder = {
+            id: uuidv4(),
+            ...data
+        };
+
+        agent.notes.push(newNote);
+        agent.noteCount = agent.notes.length;
+        return newNote;
+    }
+
+    updateNote(agentId: string, noteId: string, data: Partial<Omit<NoteReminder, 'id' | 'agentId'>>): NoteReminder | undefined {
+        const agent = this.getById(agentId);
+        if (!agent || !agent.notes) return undefined;
+
+        const noteIndex = agent.notes.findIndex(note => note.id === noteId);
+        if (noteIndex === -1) return undefined;
+
+        const updatedNote = {
+            ...agent.notes[noteIndex]!,
+            ...data
+        };
+
+        agent.notes[noteIndex] = updatedNote;
+        return updatedNote;
+    }
+
+    deleteNote(agentId: string, noteId: string): boolean {
+        const agent = this.getById(agentId);
+        if (!agent || !agent.notes) return false;
+
+        const initialLength = agent.notes.length;
+        agent.notes = agent.notes.filter(note => note.id !== noteId);
+        agent.noteCount = agent.notes.length;
+
+        return agent.notes.length < initialLength;
     }
 }
 
