@@ -31,8 +31,14 @@ const handleSelectAgent = async (id: string) => {
 const handleSelectProperty = (agentId: string, propertyId: string) => {
   handleSelectAgent(agentId);
   selectedPropertyId.value = propertyId;
-  // In this variant, we still show the agent details even when a property is clicked,
-  // or we could scroll to the property. For now, we'll just track the selection.
+};
+
+const handleAgentDelete = (deletedId: string) => {
+  if (selectedAgentId.value === deletedId) {
+    selectedAgentId.value = null;
+    selectedAgent.value = null;
+    selectedPropertyId.value = null;
+  }
 };
 
 const formatPrice = (price: number) => {
@@ -55,6 +61,7 @@ const formatPrice = (price: number) => {
         :selectedPropertyId="selectedPropertyId || undefined"
         @select-agent="handleSelectAgent"
         @select-property="handleSelectProperty"
+        @on-agent-delete="handleAgentDelete"
       />
 
       <!-- Main Content -->

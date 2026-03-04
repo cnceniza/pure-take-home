@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue';
 import api from '../api';
 import type { PropertyAgent } from '../types';
+import DeleteConfirmModal from './DeleteConfirmModal.vue';
 
 const props = defineProps<{
   selectedAgentId?: string;
@@ -11,13 +12,19 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: 'select-agent', id: string): void;
   (e: 'select-property', agentId: string, propertyId: string): void;
-  (e: 'delete-agent', id: string): void;
+  (e: 'on-agent-delete', id: string): void;
 }>();
 
 const agents = ref<PropertyAgent[]>([]);
 const loading = ref(true);
 const error = ref<string | null>(null);
 const expandedAgents = ref<Set<string>>(new Set());
+
+// --- DELETION STATE ---
+const showDeleteConfirm = ref(false);
+const agentToDelete = ref<string | null>(null);
+const deleting = ref(false);
+const successMessage = ref<string | null>(null);
 
 const fetchAgents = async () => {
   loading.value = true;
@@ -43,6 +50,37 @@ const toggleExpand = (id: string) => {
   }
 };
 
+const handleDeleteClick = (id: string) => {
+  agentToDelete.value = id;
+  showDeleteConfirm.value = true;
+};
+
+const confirmDelete = async () => {
+  if (!agentToDelete.value) return;
+  
+  deleting.value = true;
+  try {
+    await api.delete(`/agents/${agentToDelete.value}`);
+    const deletedId = agentToDelete.value;
+    
+    // Show success message
+    successMessage.value = 'Agent successfully removed';
+    setTimeout(() => { successMessage.value = null; }, 3000);
+    
+    // Refresh list localy
+    agents.value = agents.value.filter(a => a.id !== deletedId);
+    
+    emit('on-agent-delete', deletedId);
+    showDeleteConfirm.value = false;
+  } catch (err: any) {
+    console.error('Delete failed:', err);
+    alert('Failed to delete agent. Please try again.');
+  } finally {
+    deleting.value = false;
+    agentToDelete.value = null;
+  }
+};
+
 onMounted(() => {
   fetchAgents();
 });
@@ -51,8 +89,22 @@ onMounted(() => {
 <template>
   <aside class="w-[500px] border-r border-gray-200 bg-[#F9FAFB] flex flex-col shrink-0">
     <!-- Header -->
-    <div class="px-4 py-3 border-b border-gray-200">
+    <div class="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
       <p class="text-sm font-bold text-gray-800">Agents ({{ agents.length }})</p>
+      
+      <!-- Success Indicator -->
+      <Transition
+        enter-active-class="transition duration-300 ease-out"
+        enter-from-class="opacity-0 -translate-y-2"
+        enter-to-class="opacity-100 translate-y-0"
+        leave-active-class="transition duration-200 ease-in"
+        leave-from-class="opacity-100 translate-y-0"
+        leave-to-class="opacity-0 -translate-y-2"
+      >
+        <div v-if="successMessage" class="flex items-center gap-1.5 px-3 py-1 bg-green-50 text-green-600 rounded-full border border-green-100">
+           <span class="text-xs font-bold leading-none">✓ {{ successMessage }}</span>
+        </div>
+      </Transition>
     </div>
 
     <!-- Loading State -->
@@ -102,7 +154,7 @@ onMounted(() => {
 
           <!-- Trash Icon -->
           <button 
-            @click.stop="agent.id && emit('delete-agent', agent.id)"
+            @click.stop="agent.id && handleDeleteClick(agent.id)"
             class="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-white text-red-500 rounded-md transition-all shrink-0 shadow-sm border border-transparent hover:border-red-100"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -139,5 +191,13 @@ onMounted(() => {
         </div>
       </div>
     </div>
+
+    <!-- Delete Confirmation Modal -->
+    <DeleteConfirmModal
+      :show="showDeleteConfirm"
+      :loading="deleting"
+      @confirm="confirmDelete"
+      @cancel="showDeleteConfirm = false"
+    />
   </aside>
 </template>
