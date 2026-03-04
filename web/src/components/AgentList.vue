@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import api from '../api';
 import type { PropertyAgent } from '../types';
 import DeleteConfirmModal from './DeleteConfirmModal.vue';
@@ -10,15 +10,19 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  (e: 'select-agent', id: string): void;
+  (e: 'select-agent', agent: PropertyAgent): void;
   (e: 'select-property', agentId: string, propertyId: string): void;
-  (e: 'on-agent-delete', id: string): void;
+  (e: 'agent-deleted', agentId: string): void;
+  (e: 'create-click'): void;
 }>();
 
 const agents = ref<PropertyAgent[]>([]);
 const loading = ref(true);
 const error = ref<string | null>(null);
 const expandedAgents = ref<Set<string>>(new Set());
+
+// Computed property for total agents
+const totalAgents = computed(() => agents.value.length);
 
 // --- DELETION STATE ---
 const showDeleteConfirm = ref(false);
@@ -70,7 +74,7 @@ const confirmDelete = async () => {
     // Refresh list localy
     agents.value = agents.value.filter(a => a.id !== deletedId);
     
-    emit('on-agent-delete', deletedId);
+    emit('agent-deleted', deletedId);
     showDeleteConfirm.value = false;
   } catch (err: any) {
     console.error('Delete failed:', err);
@@ -92,11 +96,21 @@ defineExpose({
 
 <template>
   <aside class="w-[500px] border-r border-gray-200 bg-[#F9FAFB] flex flex-col shrink-0">
-    <!-- Header -->
-    <div class="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
-      <p class="text-sm font-bold text-gray-800">Agents ({{ agents.length }})</p>
-      
-      <!-- Success Indicator -->
+    <div class="px-6 py-6 border-b border-gray-100 bg-gray-50/30 flex justify-between items-center">
+      <h2 class="text-xl font-bold text-gray-900 tracking-tight">Agents ({{ totalAgents }})</h2>
+      <button 
+        @click="emit('create-click')"
+        class="p-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-all shadow-md shadow-blue-500/20 active:scale-95 group"
+        title="Add New Agent"
+      >
+        <svg class="w-5 h-5 transition-transform group-hover:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Success Indicator (Absolute positioned or in line) -->
+    <div class="relative">
       <Transition
         enter-active-class="transition duration-300 ease-out"
         enter-from-class="opacity-0 -translate-y-2"
@@ -105,7 +119,7 @@ defineExpose({
         leave-from-class="opacity-100 translate-y-0"
         leave-to-class="opacity-0 -translate-y-2"
       >
-        <div v-if="successMessage" class="flex items-center gap-1.5 px-3 py-1 bg-green-50 text-green-600 rounded-full border border-green-100">
+        <div v-if="successMessage" class="absolute top-2 left-6 right-6 z-10 flex items-center justify-center gap-1.5 px-3 py-2 bg-green-50 text-green-600 rounded-lg border border-green-100 shadow-sm">
            <span class="text-xs font-bold leading-none">✓ {{ successMessage }}</span>
         </div>
       </Transition>
