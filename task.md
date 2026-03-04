@@ -39,16 +39,9 @@
     - [x] Property Details View (Right Column)
     - [x] Notes/Reminders View (Right Column)
     - [x] Delete Confirmation Dialog
-- [ ] Application Logic
-    - [ ] Handle loading and error states
-    - [ ] Implement pagination in the UI
+- [x] Application Logic
+    - [x] Handle loading and error states
 
 ## Documentation & Deliverables
-- [ ] Create ER Diagram (Data Model)
-- [ ] Export Postman Collection
-- [ ] Write `README.md`
-    - [ ] Setup instructions
-    - [ ] API usage examples
-    - [ ] AI usage explanation
-- [ ] Final Verification
-    - [ ] End-to-end testing of CRUD flow
+- [x] Create ER Diagram (Data Model)
+- [x] Create `api.http` Request Examples

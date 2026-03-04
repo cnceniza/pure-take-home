@@ -1,0 +1,84 @@
+### PURE Home River API Requests
+# This file can be used with the REST Client extension in VS Code or similar tools.
+
+@baseUrl = http://localhost:3000
+
+### 1. Health Check
+GET {{baseUrl}}/
+Accept: application/json
+
+### 2. Get All Agents
+# @name listAgents
+GET {{baseUrl}}/agents
+Accept: application/json
+
+### 3. Get Agent by ID
+# This dynamically picks the first agent's ID from the list above
+@agentId = {{listAgents.response.body.0.id}}
+
+GET {{baseUrl}}/agents/{{agentId}}
+Accept: application/json
+
+### 4. Create New Agent
+# @name createAgent
+POST {{baseUrl}}/agents
+Content-Type: application/json
+
+{
+    "firstName": "John",
+    "lastName": "Doe",
+    "email": "john.doe@home-river.com",
+    "mobileNumber": "+1 (555) 123-4567",
+    "agentNotes": "Experienced property manager specializing in residential assets."
+}
+
+### 5. Update Agent
+# Uses the ID from the 'listAgents' or 'createAgent' request
+PUT {{baseUrl}}/agents/{{agentId}}
+Content-Type: application/json
+
+{
+    "firstName": "John",
+    "lastName": "Smith",
+    "email": "john.smith@home-river.com",
+    "mobileNumber": "+1 (555) 999-8888",
+    "agentNotes": "Notes updated via API."
+}
+
+### 6. Delete Agent
+DELETE {{baseUrl}}/agents/{{agentId}}
+
+---
+
+### 7. Get Agent Notes
+# @name listNotes
+GET {{baseUrl}}/agents/{{agentId}}/notes
+Accept: application/json
+
+### 8. Create Note for Agent
+# @name createNote
+POST {{baseUrl}}/agents/{{agentId}}/notes
+Content-Type: application/json
+
+{
+    "propertyId": null,
+    "type": "Maintenance",
+    "description": "General portfolio maintenance check scheduled for next week.",
+    "dueDate": "2026-03-15"
+}
+
+### 9. Update Note
+# Dynamically picks the first note's ID
+@noteId = {{listNotes.response.body.0.id}}
+
+PUT {{baseUrl}}/agents/{{agentId}}/notes/{{noteId}}
+Content-Type: application/json
+
+{
+    "type": "Inspection",
+    "description": "Updated note description via API.",
+    "dueDate": "2026-03-20"
+}
+
+### 10. Delete Note
+DELETE {{baseUrl}}/agents/{{agentId}}/notes/{{noteId}}
