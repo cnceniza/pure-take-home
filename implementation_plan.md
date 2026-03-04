@@ -47,11 +47,9 @@ This project is a full-stack Property Agent Management Application. It consists 
 
 ### Frontend Components
 
-#### [NEW] `web/src/services/api.ts`
-- Axios instance configured with the base backend URL.
-
-#### [NEW] `web/src/services/agentService.ts`
-- Methods for interacting with the `/agents` API endpoints.
+#### [NEW] `web/src/api.ts`
+- Axios instance configured with the base backend URL (`http://localhost:3000`).
+- Exported as a singleton for use directly in components.
 
 #### [NEW] `web/src/components/AgentForm.vue`
 - Reusable form component for Create and Edit operations.
