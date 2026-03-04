@@ -2,6 +2,8 @@
 import { ref, watch } from 'vue';
 import type { PropertyAgent, NoteReminder } from '../types';
 import api from '../api';
+import NoteList from './NoteList.vue';
+import NoteForm from './NoteForm.vue';
 
 const props = defineProps<{
   agent: PropertyAgent;
@@ -19,22 +21,6 @@ const notes = ref<NoteReminder[]>([]);
 const notesLoading = ref(false);
 const isAddingNote = ref(false);
 
-const noteForm = ref({
-  propertyId: null as string | null,
-  type: 'Maintenance' as string,
-  description: '',
-  dueDate: new Date().toISOString().split('T')[0],
-});
-
-const resetNoteForm = () => {
-  noteForm.value = {
-    propertyId: null,
-    type: 'Maintenance',
-    description: '',
-    dueDate: new Date().toISOString().split('T')[0],
-  };
-};
-
 const editForm = ref({
   fullName: `${props.agent.firstName} ${props.agent.lastName}`,
   email: props.agent.email,
@@ -42,7 +28,6 @@ const editForm = ref({
   agentNotes: props.agent.agentNotes || '',
 });
 
-// --- ACTIONS ---
 const fetchNotes = async () => {
   if (!props.agent.id) return;
   notesLoading.value = true;
@@ -56,47 +41,9 @@ const fetchNotes = async () => {
   }
 };
 
-const saveNote = async () => {
-  if (!noteForm.value.description || !noteForm.value.dueDate) {
-    alert('Please fill in both description and due date.');
-    return;
-  }
-
-  loading.value = true;
-  try {
-    await api.post(`/agents/${props.agent.id}/notes`, noteForm.value);
-    await fetchNotes();
-    isAddingNote.value = false;
-    resetNoteForm();
-  } catch (error) {
-    console.error('Failed to save note:', error);
-    alert('Failed to save the reminder.');
-  } finally {
-    loading.value = false;
-  }
-};
-
-const getPropertyName = (propertyId: string | null) => {
-  if (!propertyId) return 'Across Portfolio';
-  const prop = props.agent.properties?.find(p => p.id === propertyId);
-  return prop ? prop.address : 'Unknown Property';
-};
-
-const formatDate = (date: string | Date) => {
-  return new Date(date).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric'
-  });
-};
-
-const getNoteTypeClass = (type: string) => {
-  switch (type) {
-    case 'Maintenance': return 'bg-orange-50 text-orange-600 border-orange-100';
-    case 'Inspection': return 'bg-green-50 text-green-600 border-green-100';
-    case 'Pest Control': return 'bg-purple-50 text-purple-600 border-purple-100';
-    default: return 'bg-blue-50 text-blue-600 border-blue-100';
-  }
+const handleNoteSuccess = () => {
+  isAddingNote.value = false;
+  fetchNotes();
 };
 
 // Sync form if prop changes
@@ -109,7 +56,6 @@ watch(() => props.agent, (newAgent) => {
   };
   isEditing.value = false;
   isAddingNote.value = false;
-  resetNoteForm();
   fetchNotes();
 }, { deep: true, immediate: true });
 
@@ -289,117 +235,19 @@ const cancelEdit = () => {
 
       <div class="p-8 space-y-5">
         <!-- Create Note Form -->
-        <div v-if="isAddingNote" class="space-y-6 animate-fade-in">
-          <div class="space-y-4">
-            <!-- Property Selector -->
-            <div class="space-y-1.5">
-              <label class="text-xs font-bold text-gray-500 uppercase">Related Property</label>
-              <select 
-                v-model="noteForm.propertyId"
-                class="w-full text-base font-medium text-gray-800 bg-white border border-gray-200 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all appearance-none"
-              >
-                <option :value="null">Across Portfolio (General)</option>
-                <option v-for="prop in agent.properties" :key="prop.id" :value="prop.id">
-                  {{ prop.address }}
-                </option>
-              </select>
-            </div>
-
-            <!-- Note Type Radio Buttons -->
-            <div class="space-y-1.5">
-              <label class="text-xs font-bold text-gray-500 uppercase">Type</label>
-              <div class="flex flex-wrap gap-3 mt-1">
-                <label v-for="type in ['Maintenance', 'Inspection', 'Pest Control', 'Other']" :key="type" class="flex items-center">
-                  <input 
-                    type="radio" 
-                    :value="type" 
-                    v-model="noteForm.type"
-                    class="hidden"
-                  />
-                  <span 
-                    :class="[
-                      'px-4 py-2 text-xs font-bold rounded-lg border transition-all cursor-pointer',
-                      noteForm.type === type 
-                        ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-500/20' 
-                        : 'bg-white text-gray-500 border-gray-200 hover:border-blue-200 hover:text-blue-600'
-                    ]"
-                  >
-                    {{ type }}
-                  </span>
-                </label>
-              </div>
-            </div>
-
-            <!-- Description -->
-            <div class="space-y-1.5">
-              <label class="text-xs font-bold text-gray-500 uppercase">Description</label>
-              <textarea 
-                v-model="noteForm.description" 
-                rows="3"
-                class="w-full text-base font-medium text-gray-800 bg-white border border-gray-200 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all resize-none"
-                placeholder="What needs to be done?"
-              ></textarea>
-            </div>
-
-            <!-- Due Date -->
-            <div class="space-y-1.5">
-              <label class="text-xs font-bold text-gray-500 uppercase">Due Date</label>
-              <input 
-                v-model="noteForm.dueDate" 
-                type="date" 
-                class="w-full text-base font-medium text-gray-800 bg-white border border-gray-200 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
-              />
-            </div>
-          </div>
-
-          <!-- Form Action Buttons -->
-          <div class="flex justify-end items-center gap-3 pt-4 border-t border-gray-50">
-            <button 
-              @click="isAddingNote = false"
-              :disabled="loading"
-              class="px-5 py-2 text-sm font-bold text-gray-500 bg-white hover:bg-gray-50 rounded-lg transition-all"
-            >
-              Cancel
-            </button>
-            <button 
-              @click="saveNote"
-              :disabled="loading"
-              class="px-10 py-2.5 text-sm font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-500/30 transition-all flex items-center gap-2"
-            >
-              <span v-if="loading" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-              Create Reminder
-            </button>
-          </div>
-        </div>
+        <NoteForm 
+          v-if="isAddingNote" 
+          :agent="agent" 
+          @success="handleNoteSuccess" 
+          @cancel="isAddingNote = false" 
+        />
 
         <!-- Dynamic Notes List -->
-        <div v-else-if="notes.length > 0" class="space-y-4">
-          <div 
-            v-for="note in notes" 
-            :key="note.id"
-            class="p-5 border border-gray-100 rounded-xl bg-gray-50/20 hover:border-blue-100 transition-colors group"
-          >
-            <div class="flex justify-between items-start mb-2.5">
-              <div class="flex flex-col gap-1">
-                <span :class="['w-fit px-2 py-0.5 text-xs font-bold uppercase rounded border', getNoteTypeClass(note.type)]">
-                  {{ note.type }}
-                </span>
-                <div class="flex items-center gap-1 mt-2 text-xs font-bold text-blue-600 uppercase tracking-tight">
-                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  </svg>
-                  {{ getPropertyName(note.propertyId) }}
-                </div>
-              </div>
-              <span class="text-xs font-bold text-gray-400 uppercase tracking-tighter">
-                Due {{ formatDate(note.dueDate) }}
-              </span>
-            </div>
-            <p class="text-md mt-4 font-semibold text-gray-800 leading-snug group-hover:text-gray-900 transition-colors">
-              {{ note.description }}
-            </p>
-          </div>
-        </div>
+        <NoteList 
+          v-else-if="notes.length > 0" 
+          :notes="notes" 
+          :agent="agent" 
+        />
 
         <div v-else-if="!notesLoading" class="text-center py-8 border-2 border-dashed border-gray-100 rounded-xl">
            <p class="text-sm text-gray-400 font-medium">No reminders set for this agent.</p>
