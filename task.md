@@ -8,32 +8,37 @@
     - [x] Initialize Node.js project in `api/`
     - [x] Install dependencies (express, typescript, ts-node-dev, cors, uuid, etc.)
     - [x] Configure `tsconfig.json`
-- [ ] Frontend Setup
-    - [ ] Initialize Vue 3 + TypeScript project in `web/` using Vite
-    - [ ] Install dependencies (axios, etc.)
+- [x] Frontend Setup
+    - [x] Initialize Vue 3 + TypeScript project in `web/` using Vite
+    - [x] Install dependencies (axios, etc.)
 
 ## Backend Implementation
-- [ ] Define Data Models & Interfaces `[/]`
-    - [ ] Create `PropertyAgent` interface
-    - [ ] Create in-memory data store
-- [ ] Implement API Routes & Controllers
-    - [ ] POST `/agents` (Create)
-    - [ ] GET `/agents` (List with Pagination stretch goal)
-    - [ ] GET `/agents/:id` (Read)
-    - [ ] PUT `/agents/:id` (Update)
-    - [ ] DELETE `/agents/:id` (Delete)
-- [ ] Error Handling & Validation
-    - [ ] Implement request validation (email format, required fields)
-    - [ ] Centralized error middleware
+- [x] Define Data Models & Interfaces `[/]`
+    - [x] Create `PropertyAgent` interface
+    - [x] Create in-memory data store
+- [x] Implement API Routes & Controllers
+    - [x] POST `/agents` (Create)
+    - [x] GET `/agents` (List with Pagination stretch goal)
+    - [x] GET `/agents/:id` (Read)
+    - [x] PUT `/agents/:id` (Update)
+    - [x] DELETE `/agents/:id` (Delete)
+- [x] Error Handling & Validation
+    - [x] Implement request validation (email format, required fields)
+    - [x] Centralized error middleware
 
 ## Frontend Implementation
-- [ ] Services & API Integration `[/]`
-    - [ ] Create Axios service for Agent API
-- [ ] UI Components
-    - [ ] Agent List View (Table/Grid)
-    - [ ] Create/Edit Agent Form
-    - [ ] Agent Detail View
-    - [ ] Delete Confirmation Dialog
+- [x] Axios Configuration `[/]`
+    - [x] Configure Axios instance with Base URL (`web/src/api.ts`)
+- [x] Tailwind CSS Integration `[/]`
+    - [x] Install `tailwindcss` and `@tailwindcss/vite`
+    - [x] Configure Vite plugin and import Tailwind in CSS
+- [x] UI Components
+    - [x] Dashboard Layout (Two-Column)
+    - [x] Agent List (Left Column)
+    - [x] Create/Edit Agent Form (Right Column)
+    - [x] Property Details View (Right Column)
+    - [x] Notes/Reminders View (Right Column)
+    - [x] Delete Confirmation Dialog
 - [ ] Application Logic
     - [ ] Handle loading and error states
     - [ ] Implement pagination in the UI

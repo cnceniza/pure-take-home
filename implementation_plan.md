@@ -52,14 +52,19 @@ This project is a full-stack Property Agent Management Application. It consists 
 - Axios instance configured with the base backend URL (`http://localhost:3000`).
 - Exported as a singleton for use directly in components.
 
-#### [NEW] `web/src/components/AgentForm.vue`
-- Reusable form component for Create and Edit operations.
+#### [NEW] `web/src/components/AgentList.vue`
+- Structured list of agents with stats (names, email, mobile, counts).
+- Sub-list for properties when an agent is selected/expanded.
 
-#### [NEW] `web/src/views/AgentList.vue`
-- Table view for listing agents with pagination controls and action buttons (Edit/Delete).
+#### [MODIFY] `web/src/components/AgentForm.vue`
+- Enhance to show timestamps (Created/Updated) in read-only mode.
+- Align styling with the detail panel requirements.
 
-#### [NEW] `web/src/views/AgentDetail.vue`
-- Full view of an agent's details.
+#### [NEW] `web/src/views/Dashboard.vue`
+- A clean, simple dashboard variant matching the provided image.
+- Focuses on standard UI patterns (standard borders, slate/gray colors).
+- High-fidelity reproduction of the "Property Management" design.
+- Uses static mock data.
 
 ---
 
