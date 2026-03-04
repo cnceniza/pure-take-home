@@ -1,13 +1,76 @@
 <script setup lang="ts">
+import { ref, watch, computed } from 'vue';
 import type { PropertyAgent } from '../types';
+import api from '../api';
 
-defineProps<{
+const props = defineProps<{
   agent: PropertyAgent;
   selectedPropertyId?: string | null;
 }>();
 
-const formatPrice = (price: number) => {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(price);
+const emit = defineEmits<{
+  (e: 'update-success', agent: PropertyAgent): void;
+}>();
+
+// --- STATE ---
+const isEditing = ref(false);
+const loading = ref(false);
+
+const editForm = ref({
+  fullName: `${props.agent.firstName} ${props.agent.lastName}`,
+  email: props.agent.email,
+  mobileNumber: props.agent.mobileNumber,
+  agentNotes: props.agent.agentNotes || '',
+});
+
+// Sync form if prop changes
+watch(() => props.agent, (newAgent) => {
+  editForm.value = {
+    fullName: `${newAgent.firstName} ${newAgent.lastName}`,
+    email: newAgent.email,
+    mobileNumber: newAgent.mobileNumber,
+    agentNotes: newAgent.agentNotes || '',
+  };
+  isEditing.value = false;
+}, { deep: true });
+
+// --- ACTIONS ---
+const handleSave = async () => {
+  loading.value = true;
+  
+  // Split fullName back into first and last
+  const nameParts = editForm.value.fullName.trim().split(' ');
+  const firstName = nameParts[0] || '';
+  const lastName = nameParts.slice(1).join(' ') || '';
+
+  try {
+    const payload = {
+      firstName,
+      lastName,
+      email: editForm.value.email,
+      mobileNumber: editForm.value.mobileNumber,
+      agentNotes: editForm.value.agentNotes,
+    };
+    
+    const response = await api.put(`/agents/${props.agent.id}`, payload);
+    emit('update-success', response.data);
+    isEditing.value = false;
+  } catch (error) {
+    console.error('Update failed:', error);
+    alert('Failed to update agent information.');
+  } finally {
+    loading.value = false;
+  }
+};
+
+const cancelEdit = () => {
+  editForm.value = {
+    fullName: `${props.agent.firstName} ${props.agent.lastName}`,
+    email: props.agent.email,
+    mobileNumber: props.agent.mobileNumber,
+    agentNotes: props.agent.agentNotes || '',
+  };
+  isEditing.value = false;
 };
 </script>
 
@@ -19,34 +82,110 @@ const formatPrice = (price: number) => {
         <h2 class="text-4xl font-bold text-gray-900 tracking-tight">{{ agent.firstName }} {{ agent.lastName }}</h2>
         <p class="text-gray-500 font-medium text-lg">{{ agent.email }}</p>
       </div>
-      <button class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-transparent hover:border-blue-100">
+      
+      <button 
+        v-if="!isEditing"
+        @click="isEditing = true"
+        class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-transparent hover:border-blue-100"
+      >
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
         </svg>
       </button>
     </div>
 
-    <!-- Information Card -->
-    <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-      <div class="px-8 py-4 border-b border-gray-100 bg-gray-50/30">
-        <p class="text-sm font-bold text-gray-700">Agent Information</p>
-      </div>
-      <div class="p-8 grid grid-cols-2 gap-y-8">
-        <div>
-          <p class="text-sm font-bold text-gray-400 uppercase tracking-widest mb-1.5">Email</p>
-          <p class="text-base font-bold text-gray-800 italic">{{ agent.email }}</p>
+    <!-- Agent Information / Edit Card -->
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden transition-all duration-300">
+      <!-- VIEW MODE CARD -->
+      <template v-if="!isEditing">
+        <div class="px-8 py-4 border-b border-gray-100 bg-gray-50/30">
+          <p class="text-sm font-bold text-gray-700">Agent Information</p>
         </div>
-        <div>
-          <p class="text-sm font-bold text-gray-400 uppercase tracking-widest mb-1.5">Phone</p>
-          <p class="text-base font-bold text-gray-800 italic">{{ agent.mobileNumber }}</p>
+        <div class="p-8 space-y-8">
+          <div class="grid grid-cols-2 gap-8">
+            <div>
+              <p class="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Email</p>
+              <p class="text-base font-bold text-gray-800">{{ agent.email }}</p>
+            </div>
+            <div>
+              <p class="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Phone</p>
+              <p class="text-base font-bold text-gray-800">{{ agent.mobileNumber }}</p>
+            </div>
+          </div>
+          <div>
+            <p class="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Notes</p>
+            <p class="text-base text-gray-700 leading-relaxed">{{ agent.agentNotes || 'No notes available for this agent.' }}</p>
+          </div>
         </div>
-        <div class="col-span-2">
-          <p class="text-sm font-bold text-gray-400 uppercase tracking-widest mb-1.5">Record Created</p>
-          <p class="text-base text-gray-700 font-medium leading-relaxed">
-            {{ agent.createdAt ? new Date(agent.createdAt).toLocaleDateString() : 'N/A' }}
-          </p>
+      </template>
+
+      <!-- EDIT MODE CARD -->
+      <template v-else>
+        <div class="px-8 py-4 border-b border-gray-100 bg-gray-50/30">
+          <p class="text-sm font-bold text-gray-700">Edit Agent Details</p>
         </div>
-      </div>
+        <div class="p-8 space-y-6">
+          <div class="grid grid-cols-2 gap-6">
+            <div class="space-y-1.5">
+              <label class="text-xs font-bold text-gray-500 uppercase">Name</label>
+              <input 
+                v-model="editForm.fullName" 
+                type="text" 
+                class="w-full text-base font-medium text-gray-800 bg-white border border-gray-200 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
+                placeholder="Full Name"
+              />
+            </div>
+            <div class="space-y-1.5">
+              <label class="text-xs font-bold text-gray-500 uppercase">Email</label>
+              <input 
+                v-model="editForm.email" 
+                type="email" 
+                class="w-full text-base font-medium text-gray-800 bg-white border border-gray-200 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
+                placeholder="email@example.com"
+              />
+            </div>
+          </div>
+
+          <div class="space-y-1.5">
+            <label class="text-xs font-bold text-gray-500 uppercase">Phone</label>
+            <input 
+              v-model="editForm.mobileNumber" 
+              type="tel" 
+              class="w-full text-base font-medium text-gray-800 bg-white border border-gray-200 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
+              placeholder="+1 (555) 000-0000"
+            />
+          </div>
+
+          <div class="space-y-1.5">
+            <label class="text-xs font-bold text-gray-500 uppercase">Notes</label>
+            <textarea 
+              v-model="editForm.agentNotes" 
+              rows="4"
+              class="w-full text-base font-medium text-gray-800 bg-white border border-gray-200 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all resize-none"
+              placeholder="Enter agent notes here..."
+            ></textarea>
+          </div>
+
+          <!-- Bottom Buttons -->
+          <div class="flex justify-end items-center gap-3 pt-4">
+            <button 
+              @click="cancelEdit"
+              :disabled="loading"
+              class="px-6 py-2.5 text-sm font-bold text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-all disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button 
+              @click="handleSave"
+              :disabled="loading"
+              class="px-8 py-2.5 text-sm font-bold text-white bg-blue-600 rounded-lg hover:bg-blue-700 shadow-lg shadow-blue-500/20 transition-all disabled:opacity-50 flex items-center gap-2"
+            >
+              <span v-if="loading" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+              Save Changes
+            </button>
+          </div>
+        </div>
+      </template>
     </div>
 
     <!-- Properties Managed Card -->
@@ -66,7 +205,7 @@ const formatPrice = (price: number) => {
           v-for="prop in agent.properties" 
           :key="prop.id" 
           :class="[
-            'p-6 border rounded-xl transition-all cursor-pointer group',
+            'p-6 border rounded-xl transition-all group',
             selectedPropertyId === prop.id ? 'border-blue-600 bg-blue-50/30 shadow-sm' : 'border-gray-100 hover:border-blue-100 hover:bg-blue-50/20'
           ]"
         >
@@ -78,7 +217,7 @@ const formatPrice = (price: number) => {
             <span v-if="prop.tenantCount !== undefined">{{ prop.tenantCount }} Tenants</span>
             <span v-else>Active Asset</span>
             <span class="text-gray-200">•</span>
-            <span class="text-blue-500 bg-blue-50 px-2 py-0.5 rounded text-[10px] uppercase">Verified Listing</span>
+            <span class="text-blue-600 bg-blue-50 px-2 py-0.5 rounded text-[10px] uppercase">Verified Listing</span>
           </div>
         </div>
 
@@ -98,5 +237,9 @@ const formatPrice = (price: number) => {
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+input:focus, textarea:focus {
+  background-color: white;
 }
 </style>

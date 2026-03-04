@@ -84,6 +84,10 @@ const confirmDelete = async () => {
 onMounted(() => {
   fetchAgents();
 });
+
+defineExpose({
+  fetchAgents
+});
 </script>
 
 <template>

@@ -11,6 +11,8 @@ const selectedAgent = ref<PropertyAgent | null>(null);
 const selectedPropertyId = ref<string | null>(null);
 const loadingDetails = ref(false);
 
+const agentListRef = ref<any>(null);
+
 // --- ACTIONS ---
 const handleSelectAgent = async (id: string) => {
   if (selectedAgentId.value === id) return;
@@ -41,6 +43,14 @@ const handleAgentDelete = (deletedId: string) => {
     selectedPropertyId.value = null;
   }
 };
+
+const handleUpdateSuccess = (updatedAgent: PropertyAgent) => {
+  selectedAgent.value = updatedAgent;
+  // Refresh the sidebar list to show potential name/email changes
+  if (agentListRef.value) {
+    agentListRef.value.fetchAgents();
+  }
+};
 </script>
 
 <template>
@@ -54,6 +64,7 @@ const handleAgentDelete = (deletedId: string) => {
     <div class="flex-1 flex overflow-hidden">
       <!-- Sidebar Component -->
       <AgentList 
+        ref="agentListRef"
         :selectedAgentId="selectedAgentId || undefined"
         :selectedPropertyId="selectedPropertyId || undefined"
         @select-agent="handleSelectAgent"
@@ -75,6 +86,7 @@ const handleAgentDelete = (deletedId: string) => {
           v-else-if="selectedAgent" 
           :agent="selectedAgent" 
           :selectedPropertyId="selectedPropertyId"
+          @update-success="handleUpdateSuccess"
         />
 
         <!-- Empty State -->

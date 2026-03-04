@@ -41,6 +41,7 @@ export interface PropertyAgent {
     mobileNumber: string;
     createdAt?: string | Date;
     updatedAt?: string | Date;
+    agentNotes?: string;
     properties?: Property[];
     notes?: NoteReminder[];
     propertyCount?: number;
