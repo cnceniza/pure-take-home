@@ -35,6 +35,7 @@ export interface Tenant {
     familyId: string;
     firstName: string;
     lastName: string;
+    familyName?: string;
 }
 
 export enum NoteType {

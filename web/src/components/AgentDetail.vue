@@ -442,6 +442,29 @@ const cancelEdit = () => {
             <span class="text-gray-200">•</span>
             <span class="text-blue-600 bg-blue-50 px-2 py-0.5 rounded text-[10px] uppercase">Verified Listing</span>
           </div>
+
+          <!-- Tenant Table -->
+          <div v-if="prop.tenants && prop.tenants.length > 0" class="mt-6 pt-6 border-t border-gray-100/60">
+            <p class="text-[10px] font-black uppercase text-gray-400 mb-3 tracking-widest">Current Occupants</p>
+            <div class="overflow-hidden rounded-lg border border-gray-100 bg-white">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="bg-gray-50/50">
+                    <th class="px-4 py-2 text-[10px] font-bold text-gray-500 uppercase">First Name</th>
+                    <th class="px-4 py-2 text-[10px] font-bold text-gray-500 uppercase">Last Name</th>
+                    <th class="px-4 py-2 text-[10px] font-bold text-gray-500 uppercase">Family</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-50">
+                  <tr v-for="tenant in prop.tenants" :key="tenant.id" class="hover:bg-gray-50/30 transition-colors">
+                    <td class="px-4 py-2 text-xs font-semibold text-gray-700">{{ tenant.firstName }}</td>
+                    <td class="px-4 py-2 text-xs font-semibold text-gray-700">{{ tenant.lastName }}</td>
+                    <td class="px-4 py-2 text-xs font-black text-blue-600 uppercase tracking-tighter">{{ tenant.familyName || '---' }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
 
         <div v-if="!agent.properties || agent.properties.length === 0" class="text-center py-12 border-2 border-dashed border-gray-100 rounded-xl">

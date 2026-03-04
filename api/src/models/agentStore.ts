@@ -1,8 +1,9 @@
-import { PropertyAgent, NoteType, NoteReminder } from './types';
+import { PropertyAgent, NoteType, NoteReminder, Family } from './types';
 import { v4 as uuidv4 } from 'uuid';
 
 class AgentStore {
     private agents: PropertyAgent[] = [];
+    private families: Family[] = [];
 
     constructor() {
         // Seed with some initial data for testing
@@ -14,7 +15,14 @@ class AgentStore {
         const agent2Id = uuidv4();
         const now = new Date();
         const prop1Id = uuidv4();
+        const prop2Id = uuidv4();
         const agent2Prop1Id = uuidv4();
+
+        // Families
+        const johnsonFamily = { id: uuidv4(), familyName: 'Johnson' };
+        const brownFamily = { id: uuidv4(), familyName: 'Brown' };
+        const millerFamily = { id: uuidv4(), familyName: 'Miller' };
+        this.families.push(johnsonFamily, brownFamily, millerFamily);
 
         const agent1: PropertyAgent = {
             id: agent1Id,
@@ -37,12 +45,12 @@ class AgentStore {
                     zip: '62704',
                     tenantCount: 2,
                     tenants: [
-                        { id: uuidv4(), propertyId: '', familyId: '', firstName: 'Alice', lastName: 'Johnson' },
-                        { id: uuidv4(), propertyId: '', familyId: '', firstName: 'Bob', lastName: 'Johnson' }
+                        { id: uuidv4(), propertyId: prop1Id, familyId: johnsonFamily.id, firstName: 'Alice', lastName: 'Johnson' },
+                        { id: uuidv4(), propertyId: prop1Id, familyId: johnsonFamily.id, firstName: 'Bob', lastName: 'Johnson' }
                     ]
                 },
                 {
-                    id: uuidv4(),
+                    id: prop2Id,
                     agentId: agent1Id,
                     address: '456 Oak Lane',
                     city: 'Springfield',
@@ -50,13 +58,13 @@ class AgentStore {
                     zip: '62704',
                     tenantCount: 1,
                     tenants: [
-                        { id: uuidv4(), propertyId: '', familyId: '', firstName: 'Charlie', lastName: 'Brown' }
+                        { id: uuidv4(), propertyId: prop2Id, familyId: brownFamily.id, firstName: 'Charlie', lastName: 'Brown' }
                     ]
                 }
             ],
             notes: [
-                { id: uuidv4(), agentId: agent1Id, propertyId: prop1Id, type: NoteType.Maintenance, description: 'Fix leaking faucet in Unit A', dueDate: new Date(Date.now() + 86400000 * 2) },
-                { id: uuidv4(), agentId: agent1Id, propertyId: null, type: NoteType.Inspection, description: 'Annual fire safety check', dueDate: new Date(Date.now() + 86400000 * 5) }
+                { id: uuidv4(), agentId: agent1Id, propertyId: prop1Id, type: NoteType.Maintenance, description: 'Fix leaking faucet in Unit A', dueDate: new Date(now.getTime() + 86400000 * 2) },
+                { id: uuidv4(), agentId: agent1Id, propertyId: null, type: NoteType.Inspection, description: 'Annual fire safety check', dueDate: new Date(now.getTime() + 86400000 * 5) }
             ]
         };
 
@@ -81,26 +89,44 @@ class AgentStore {
                     zip: '60601',
                     tenantCount: 3,
                     tenants: [
-                        { id: uuidv4(), propertyId: '', familyId: '', firstName: 'David', lastName: 'Miller' },
-                        { id: uuidv4(), propertyId: '', familyId: '', firstName: 'Eve', lastName: 'Miller' },
-                        { id: uuidv4(), propertyId: '', familyId: '', firstName: 'Frank', lastName: 'Miller' }
+                        { id: uuidv4(), propertyId: agent2Prop1Id, familyId: millerFamily.id, firstName: 'David', lastName: 'Miller' },
+                        { id: uuidv4(), propertyId: agent2Prop1Id, familyId: millerFamily.id, firstName: 'Eve', lastName: 'Miller' },
+                        { id: uuidv4(), propertyId: agent2Prop1Id, familyId: millerFamily.id, firstName: 'Frank', lastName: 'Miller' }
                     ]
                 }
             ],
             notes: [
-                { id: uuidv4(), agentId: agent2Id, propertyId: agent2Prop1Id, type: NoteType.PestControl, description: 'Quarterly pest control service', dueDate: new Date(Date.now() + 86400000 * 1) }
+                { id: uuidv4(), agentId: agent2Id, propertyId: agent2Prop1Id, type: NoteType.PestControl, description: 'Quarterly pest control service', dueDate: new Date(now.getTime() + 86400000 * 1) }
             ]
         };
 
         this.agents.push(agent1, agent2);
     }
 
+    private enrichAgent(agent: PropertyAgent): PropertyAgent {
+        if (!agent.properties) return agent;
+
+        const enrichedProperties = agent.properties.map(prop => ({
+            ...prop,
+            tenants: prop.tenants?.map(tenant => ({
+                ...tenant,
+                familyName: this.families.find(f => f.id === tenant.familyId)?.familyName
+            }))
+        }));
+
+        return {
+            ...agent,
+            properties: enrichedProperties
+        };
+    }
+
     getAll(): PropertyAgent[] {
-        return this.agents;
+        return this.agents.map(agent => this.enrichAgent(agent));
     }
 
     getById(id: string): PropertyAgent | undefined {
-        return this.agents.find(agent => agent.id === id);
+        const agent = this.agents.find(agent => agent.id === id);
+        return agent ? this.enrichAgent(agent) : undefined;
     }
 
     getByEmail(email: string): PropertyAgent | undefined {

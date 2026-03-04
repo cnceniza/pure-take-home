@@ -1,8 +1,8 @@
-export enum NoteType {
-    Maintenance = 'Maintenance',
-    PestControl = 'Pest Control',
-    Inspection = 'Inspection',
-    Other = 'Other'
+export const NoteType = {
+    Maintenance: 'Maintenance',
+    PestControl: 'Pest Control',
+    Inspection: 'Inspection',
+    Other: 'Other'
 }
 
 export interface Tenant {
@@ -11,6 +11,7 @@ export interface Tenant {
     familyId: string;
     firstName: string;
     lastName: string;
+    familyName?: string;
 }
 
 export interface Property {
@@ -28,7 +29,7 @@ export interface NoteReminder {
     id: string;
     agentId: string;
     propertyId: string | null;
-    type: NoteType;
+    type: string;
     description: string;
     dueDate: string | Date;
 }
