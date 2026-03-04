@@ -6,6 +6,11 @@ export interface PropertyAgent {
     mobileNumber: string;
     createdAt: Date;
     updatedAt: Date;
+    agentNotes?: string;
+    properties?: Property[];
+    notes?: NoteReminder[];
+    propertyCount?: number;
+    noteCount?: number;
 }
 
 export interface Property {
@@ -15,6 +20,8 @@ export interface Property {
     city: string;
     state: string;
     zip: string;
+    tenants?: Tenant[];
+    tenantCount?: number;
 }
 
 export interface Family {

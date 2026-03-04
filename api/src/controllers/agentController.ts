@@ -33,7 +33,7 @@ export const getAgentById = (req: Request, res: Response, next: NextFunction) =>
 
 export const createAgent = (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { firstName, lastName, email, mobileNumber } = req.body;
+        const { firstName, lastName, email, mobileNumber, agentNotes } = req.body;
 
         // Basic validation
         if (!firstName || !lastName || !email || !mobileNumber) {
@@ -51,7 +51,7 @@ export const createAgent = (req: Request, res: Response, next: NextFunction) => 
             return res.status(400).json({ message: 'Email already in use' });
         }
 
-        const newAgent = agentStore.create({ firstName, lastName, email, mobileNumber });
+        const newAgent = agentStore.create({ firstName, lastName, email, mobileNumber, agentNotes });
         res.status(201).json(newAgent);
     } catch (error) {
         next(error);
@@ -60,7 +60,7 @@ export const createAgent = (req: Request, res: Response, next: NextFunction) => 
 
 export const updateAgent = (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { firstName, lastName, email, mobileNumber } = req.body;
+        const { firstName, lastName, email, mobileNumber, agentNotes } = req.body;
         const agentId = req.params.id as string;
         const existingAgent = agentStore.getById(agentId);
         if (!existingAgent) {
@@ -72,7 +72,7 @@ export const updateAgent = (req: Request, res: Response, next: NextFunction) => 
             return res.status(400).json({ message: 'Email already in use' });
         }
 
-        const updatedAgent = agentStore.update(req.params.id as string, { firstName, lastName, email, mobileNumber });
+        const updatedAgent = agentStore.update(req.params.id as string, { firstName, lastName, email, mobileNumber, agentNotes });
         res.json(updatedAgent);
     } catch (error) {
         next(error);
