@@ -20,6 +20,7 @@ This project is a full-stack Property Agent Management Application. It consists 
 
 #### [NEW] `web/` (Frontend)
 - Initialize a Vue 3 project using Vite and TypeScript.
+- Install and configure **Tailwind CSS v4** using `@tailwindcss/vite`.
 - Set up basic folder structure: `src/components`, `src/views`, `src/services`.
 
 ---
